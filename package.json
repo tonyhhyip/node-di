@@ -3,11 +3,17 @@
   "version": "0.0.1",
   "license": "MIT",
   "description": "Dependency Inject for Node.js",
+  "scripts": {
+    "test": "jest"
+  },
   "engines": {
     "node": ">=4"
   },
   "main": "src/index",
   "dependencies": {
     "debug": "^2.6.8"
+  },
+  "devDependencies": {
+    "jest": "^20.0.4"
   }
 }

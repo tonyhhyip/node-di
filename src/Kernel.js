@@ -1,11 +1,10 @@
 'use strict';
 
-/* global boot */
-
 const util = require('util');
 const debug = require('debug')('node-di:kernel');
 const Container = require('./Container');
 const construct = require('./utils');
+const boot = require('./booter');
 
 function Kernel() {
 	if (!(this instanceof Kernel)) {
