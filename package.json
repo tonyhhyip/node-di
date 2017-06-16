@@ -1,0 +1,13 @@
+{
+  "name": "node-di",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Dependency Inject for Node.js",
+  "engines": {
+    "node": ">=4"
+  },
+  "main": "src/index",
+  "dependencies": {
+    "debug": "^2.6.8"
+  }
+}
