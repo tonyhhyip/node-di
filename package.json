@@ -1,5 +1,5 @@
 {
-  "name": "node-di-container",
+  "name": "node-di-kernel",
   "version": "0.0.1",
   "license": "MIT",
   "description": "Dependency Inject for Node.js",
