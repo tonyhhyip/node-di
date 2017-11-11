@@ -4,16 +4,20 @@
   "license": "MIT",
   "description": "Dependency Inject for Node.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint src"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "main": "src/index",
   "dependencies": {
     "debug": "^3.0.1"
   },
   "devDependencies": {
+    "eslint": "^4.11.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
     "jest": "^21.1.0"
   }
 }
