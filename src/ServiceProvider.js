@@ -9,6 +9,7 @@ function ServiceProvider(app) {
   this.booted = false;
 }
 
+// eslint-disable-next-line no-unused-vars
 ServiceProvider.prototype.register = function (app) {};
 
 ServiceProvider.prototype.provides = function () {

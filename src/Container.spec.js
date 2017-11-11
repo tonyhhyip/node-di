@@ -1,6 +1,6 @@
 
 
-/* global jasmine, describe, it, expect, beforeEach, */
+/* global describe, it, expect */
 
 const EventEmitter = require('events').EventEmitter;
 const Container = require('./Container');

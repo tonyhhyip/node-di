@@ -2,6 +2,34 @@
 
 const debug = require('debug')('node-di:boot');
 
+function resolveConstructor(object) {
+  debug('Resolve constructor for %s', object);
+  if ('constructor' in object) {
+    return object.constructor;
+  } else if ('constructor' in object.prototype) {
+    return object.prototype.constructor;
+  }
+  return null;
+}
+
+function resolveClasses(constructor) {
+  debug('Resolve super class for %s', constructor.name);
+  const classes = new Set();
+  classes.add(constructor.name);
+  let child = constructor;
+  while ('super_' in child) {
+    classes.add(child.name);
+    // eslint-disable-next-line no-underscore-dangle
+    child = child.super_;
+  }
+  return classes;
+}
+
+function ucfirst(str) {
+  const string = String(str);
+  return `${string.charAt(0).toUpperCase()}${string.substring(1)}`;
+}
+
 module.exports = function boot(object) {
   const constructor = resolveConstructor(object);
   const classes = resolveClasses(constructor);
@@ -20,29 +48,3 @@ module.exports = function boot(object) {
     }
   });
 };
-
-function resolveConstructor(object) {
-  debug('Resolve constructor for %s', object);
-  if ('constructor' in object) {
-    return object.constructor;
-  } else if ('constructor' in object.prototype) {
-    return object.prototype.constructor;
-  }
-  return null;
-}
-
-function resolveClasses(constructor) {
-  debug('Resolve super class for %s', constructor.name);
-  const classes = new Set();
-  classes.add(constructor.name);
-  let child = constructor;
-  while ('super_' in child) {
-    classes.add(child.name);
-    child = child.super_;
-  }
-  return classes;
-}
-function ucfirst(str) {
-  const string = String(str);
-  return `${string.charAt(0).toUpperCase()}${string.substring(1)}`;
-}
