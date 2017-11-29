@@ -2,6 +2,7 @@
   "extends": "airbnb-base",
   "rules": {
     "max-len": "warn",
-    "prefer-destructuring": "off"
+    "prefer-destructuring": "off",
+    "class-methods-use-this": "warn"
   }
 }
