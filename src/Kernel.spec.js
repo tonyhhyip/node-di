@@ -1,4 +1,3 @@
-'use strict';
 /* global describe, it, expect */
 
 const util = require('util');
@@ -27,11 +26,9 @@ describe('Test Kernel', () => {
       ServiceProvider.call(this, app);
     }
     util.inherits(TestServiceProvider, ServiceProvider);
-    TestServiceProvider.prototype.provides = () => {
-      return ['a'];
-    };
+    TestServiceProvider.prototype.provides = () => ['a'];
 
-    TestServiceProvider.prototype.register = function(app) {
+    TestServiceProvider.prototype.register = function (app) {
       app.instance('a', 'a');
     };
     const kernel = new Kernel();
