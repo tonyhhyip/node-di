@@ -4,6 +4,16 @@ const Container = require('./Container');
 const Kernel = require('./Kernel');
 const ServiceProvider = require('./ServiceProvider');
 
+class TestServiceProvider extends ServiceProvider {
+  provides() {
+    return ['a'];
+  }
+
+  register(app) {
+    app.instance('a', 'a');
+  }
+}
+
 describe('Test Kernel', () => {
   it('test export', () => {
     expect(typeof Kernel).toBe('function');
@@ -21,16 +31,6 @@ describe('Test Kernel', () => {
   });
 
   it('Test service provider', () => {
-    class TestServiceProvider extends ServiceProvider {
-      provides() {
-        return ['a'];
-      }
-
-      register(app) {
-        app.instance('a', 'a');
-      }
-    }
-
     const kernel = new Kernel();
     kernel.register(TestServiceProvider);
   });
