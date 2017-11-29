@@ -1,5 +1,3 @@
-
-
 const util = require('util');
 const debug = require('debug')('node-di:kernel');
 const Container = require('./Container');

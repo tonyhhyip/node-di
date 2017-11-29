@@ -1,5 +1,6 @@
 /* global describe, it, expect */
 
+const util = require('util');
 const Container = require('./Container');
 const Kernel = require('./Kernel');
 const ServiceProvider = require('./ServiceProvider');
@@ -21,16 +22,15 @@ describe('Test Kernel', () => {
   });
 
   it('Test service provider', () => {
-    class TestServiceProvider extends ServiceProvider {
-      provides() {
-        return ['a'];
-      }
-
-      register(app) {
-        app.instance('a', 'a');
-      }
+    function TestServiceProvider(app) {
+      ServiceProvider.call(this, app);
     }
+    util.inherits(TestServiceProvider, ServiceProvider);
+    TestServiceProvider.prototype.provides = () => ['a'];
 
+    TestServiceProvider.prototype.register = function (app) {
+      app.instance('a', 'a');
+    };
     const kernel = new Kernel();
     kernel.register(TestServiceProvider);
   });

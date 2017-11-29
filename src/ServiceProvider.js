@@ -1,5 +1,3 @@
-
-
 const debug = require('debug')('node-di:provider');
 
 function ServiceProvider(app) {
