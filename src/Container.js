@@ -38,7 +38,7 @@ Container.prototype.bind = function (abstract, builder, shared) {
  * @param {String} abstract
  * @returns {Object}
  */
-Container.prototype.make = function (abstract) {
+Container.prototype.make = async function (abstract) {
   debug('Make "%s"', abstract);
   const name = this.getAlias(abstract);
 
@@ -55,7 +55,7 @@ Container.prototype.make = function (abstract) {
   const constructor = this.getConstructor(name);
 
   debug('Run constructor of "%s"', name);
-  const instance = constructor.call(null, this);
+  const instance = await constructor.call(null, this);
 
   if (this.isShared(name)) {
     debug('Register instance "%s"');

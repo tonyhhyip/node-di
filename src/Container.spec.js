@@ -99,7 +99,7 @@ describe('Container Test', () => {
     expect(container.bindings.foo).toEqual({ builder, shared: true });
   });
 
-  it('Test make function', () => {
+  it('Test make function', async () => {
     const container = new Container();
     container.aliases.set('foo', 'bar');
     container.aliases.set('build', 'make');
@@ -118,13 +118,27 @@ describe('Container Test', () => {
       },
     };
 
-    expect(container.make('make')).toBe('make');
-    expect(container.make('build')).toBe('make');
-    expect(container.make('bar')).toBe('foo');
-    expect(container.make('foo')).toBe('foo');
+    expect(await container.make('make')).toBe('make');
+    expect(await container.make('build')).toBe('make');
+    expect(await container.make('bar')).toBe('foo');
+    expect(await container.make('foo')).toBe('foo');
 
-    const result = container.make('test');
+    const result = await container.make('test');
     expect(result).toBeInstanceOf(Date);
-    expect(container.make('test')).toEqual(result);
+    expect(await container.make('test')).toEqual(result);
+  });
+
+  it('Test async creater', async () => {
+    const container = new Container();
+    async function makeFoo() {
+      return Promise.resolve('foo');
+    }
+    container.bind('foo', async () => {
+      const foo = await makeFoo();
+      return foo;
+    });
+
+    const foo = await container.make('foo');
+    expect(foo).toBe('foo');
   });
 });

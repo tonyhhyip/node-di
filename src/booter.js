@@ -1,5 +1,3 @@
-
-
 const debug = require('debug')('node-di:boot');
 
 function resolveConstructor(object) {
