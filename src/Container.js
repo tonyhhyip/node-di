@@ -5,7 +5,24 @@ const debug = require('debug')('node-di:container');
 class Container extends EventEmitter {
   constructor() {
     super();
-    this.flush();
+    /**
+     * @type {Map<Symbol, Object>}
+     */
+    this.instances = new Map();
+    /**
+     * @type {Map<Symbol, Symbol>}
+     */
+    this.aliases = new Map();
+    /**
+     * @typedef {Object} Binding
+     * @property {Function} factory
+     * @property {Array<Symbol>} dependencies
+     * @property {boolean} shared
+     */
+    /**
+     * @type {Map<Symbol, Binding>}
+     */
+    this.bindings = new Map();
   }
 
   /**
@@ -14,6 +31,11 @@ class Container extends EventEmitter {
    */
   instance(abstract, instance) {
     debug('Register instance "%s"', abstract);
+
+    if (!this.instances) {
+      this.instances = new Map();
+    }
+
     this.instances.set(abstract, instance);
   }
 
@@ -33,8 +55,13 @@ class Container extends EventEmitter {
    * @param {Array<Symbol>} dependencies
    * @param {boolean} shared
    */
-  bind(abstract, factory, dependencies, shared) {
+  bind(abstract, factory, dependencies, shared = false) {
     debug('Bind "%s"', abstract);
+
+    if (!this.bindings) {
+      this.bindings = new Map();
+    }
+
     this.bindings.set(abstract, {
       factory,
       shared,
@@ -44,7 +71,7 @@ class Container extends EventEmitter {
 
   /**
    * @param {Symbol} abstract
-   * @return {Promise<object|null>}
+   * @return {Promise<Object|null>}
    */
   async make(abstract) {
     debug('Make "%s"', abstract);
@@ -67,7 +94,8 @@ class Container extends EventEmitter {
     );
 
     debug('Run factory of "%s"', name);
-    const instance = await factory.apply(null, this, dependencyInstances);
+    // eslint-disable-next-line prefer-spread
+    const instance = await factory.apply(null, dependencyInstances);
 
     if (shared) {
       debug('Register instance "%s"');
@@ -104,6 +132,11 @@ class Container extends EventEmitter {
    */
   alias(name, abstract) {
     debug(`Create alias ${name.toString()} of ${abstract.toString()}`);
+
+    if (!this.aliases) {
+      this.aliases = new Map();
+    }
+
     this.aliases.set(name, abstract);
   }
 
