@@ -1,122 +1,76 @@
-
-
 /* global describe, it, expect */
 
-const EventEmitter = require('events').EventEmitter;
+const { EventEmitter } = require('events');
 const Container = require('./Container');
 
 describe('Container Test', () => {
-  it('Test export', () => {
-    expect(typeof Container).toBe('function');
-    expect(Container.name).toBe('Container');
-  });
-
   it('Test constructor', () => {
     const container = new Container();
     const instance = expect(container);
     instance.toBeInstanceOf(Container);
     instance.toBeInstanceOf(EventEmitter);
     expect('alias' in container).toBeTruthy();
-
-    expect(Container()).toBeInstanceOf(Container);
   });
 
   it('Test instance method', () => {
     const container = new Container();
-    const abstract = 'test';
+    const abstract = Symbol('test');
     const instance = 'Testing';
     container.instance(abstract, instance);
 
-    expect(container.instances[abstract]).toEqual(instance);
+    expect(container.instances.get(abstract)).toEqual(instance);
   });
 
   it('Test forgetInstances method', () => {
     const container = new Container();
-    const abstract = 'test';
-    container.instances[abstract] = 'Testing';
-    container.instances.foo = 'bar';
+    const abstract = Symbol('test');
+    container.instances.set(abstract, 'Testing');
+    container.instances.set(Symbol('foo'), 'bar');
 
     container.forgetInstances();
-  });
-
-  it('Test forgetInstance method', () => {
-    const container = new Container();
-    const abstract = 'test';
-    container.instances[abstract] = 'Testing';
-    container.instances.foo = 'bar';
-
-    container.forgetInstance('foo');
+    expect(container.hasRegister(abstract)).toBe(false);
   });
 
   it('Test alias method', () => {
     const container = new Container();
-    container.alias('foo', 'bar');
+    const name = Symbol('foo');
+    const abstract = Symbol('bar');
+    container.alias(name, abstract);
 
-    expect(container.aliases.get('foo')).toBe('bar');
-  });
-
-  it('Test isAlias method', () => {
-    const container = new Container();
-    container.aliases.set('foo', 'bar');
-
-    expect(container.isAlias('foo')).toBe(true);
-    expect(container.isAlias('bar')).toBe(false);
-  });
-
-  it('Test getAlias method', () => {
-    const container = new Container();
-    container.aliases.set('foo', 'bar');
-
-    expect(container.getAlias('foo')).toEqual('bar');
-    expect(container.getAlias('bar')).toEqual('bar');
-  });
-
-  it('Test flush method', () => {
-    const container = new Container();
-    container.aliases.set('foo', 'bar');
-    container.instances.bar = 'foo';
-    container.bindings.test = {
-      shared: false,
-      builder() { return null; },
-    };
-
-    container.flush();
-  });
-
-  it('Test bind function', () => {
-    function builder() { return null; }
-    const container = new Container();
-    container.bind('foo', builder);
-
-    expect(container.bindings.foo).toEqual({ builder, shared: false });
+    expect(container.aliases.get(name)).toBe(abstract);
   });
 
   it('Test singleton function', () => {
-    function builder() { return null; }
+    function factory() { return null; }
     const container = new Container();
-    container.singleton('foo', builder);
+    const abstract = Symbol('foo');
+    container.singleton(abstract, factory, []);
 
-    expect(container.bindings.foo).toEqual({ builder, shared: true });
+    const binding = container.bindings.get(abstract);
+
+    expect(binding).toEqual({ factory, shared: true, dependencies: [] });
   });
 
   it('Test make function', async () => {
     const container = new Container();
     container.aliases.set('foo', 'bar');
     container.aliases.set('build', 'make');
-    container.instances.bar = 'foo';
-    container.bindings.test = {
+    container.instances.set('bar', 'foo');
+    container.bindings.set('test', {
       shared: true,
-      builder() {
+      factory() {
         return new Date();
       },
-    };
+      dependencies: [],
+    });
 
-    container.bindings.make = {
+    container.bindings.set('make', {
       shared: false,
-      builder() {
+      factory() {
         return 'make';
       },
-    };
+      dependencies: [],
+    });
 
     expect(await container.make('make')).toBe('make');
     expect(await container.make('build')).toBe('make');
@@ -136,7 +90,7 @@ describe('Container Test', () => {
     container.bind('foo', async () => {
       const foo = await makeFoo();
       return foo;
-    });
+    }, []);
 
     const foo = await container.make('foo');
     expect(foo).toBe('foo');

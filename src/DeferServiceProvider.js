@@ -1,15 +1,10 @@
-const util = require('util');
 const ServiceProvider = require('./ServiceProvider');
 
-function DeferServiceProvider(app) {
-  if (!(this instanceof DeferServiceProvider)) {
-    return new DeferServiceProvider();
+class DeferServiceProvider extends ServiceProvider {
+  constructor(app) {
+    super(app);
+    this.defer = true;
   }
-
-  ServiceProvider.call(this, app);
-  this.defer = true;
 }
-
-util.inherits(DeferServiceProvider, ServiceProvider);
 
 module.exports = DeferServiceProvider;

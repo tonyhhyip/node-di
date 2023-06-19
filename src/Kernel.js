@@ -1,95 +1,83 @@
-const util = require('util');
 const debug = require('debug')('node-di:kernel');
 const Container = require('./Container');
-const construct = require('./utils');
 const boot = require('./booter');
 
-function Kernel() {
-  if (!(this instanceof Kernel)) {
-    return new Kernel();
-  }
-
-  Container.call(this);
-
-  this.providers = [];
-  this.defer = [];
-  this.bootstrap = false;
-
-  boot(this);
-}
-
-util.inherits(Kernel, Container);
-
-Kernel.prototype.loadDeferServiceProvider = function (abstract) {
-  const instance = this.defer[abstract];
-  debug('Load [%s] from defer service provider [%s]', instance.constructor.name);
-  if (!instance.isBooted()) {
-    debug('Boot up defer service provider [%s]', instance.constructor.name);
-    instance.register(this);
-    boot(instance);
-    this.providers.push(instance);
-  }
-  delete this.defer[abstract];
-};
-
-Kernel.prototype.make = function (abstract) {
-  debug('Make "%s"', abstract);
-  if (this.bootstrap) {
-    debug('Bootstrap All Provider');
-    this.providers.forEach((provider) => {
-      if (!provider.isBooted()) provider.boot();
-    });
+class Kernel extends Container {
+  constructor() {
+    super();
+    this.providers = [];
+    this.defer = new Map();
     this.bootstrap = false;
+
+    boot(this);
   }
 
-  if (abstract in this.defer) {
-    this.loadDeferServiceProvider(abstract);
+  /**
+   * @param {Symbol} abstract
+   */
+  loadDeferServiceProvider(abstract) {
+    const instance = this.defer.get(abstract);
+    debug('Load [%s] from defer service provider [%s]', instance.constructor.name);
+    if (!instance.isBooted()) {
+      debug('Boot up defer service provider [%s]', instance.constructor.name);
+      instance.register(this);
+      boot(instance);
+      this.providers.push(instance);
+    }
+    this.defer.delete(abstract);
   }
 
-  return Container.prototype.make.call(this, abstract);
-};
+  /**
+   * @param {Symbol}abstract
+   * @return {Promise<object|null>}
+   */
+  async make(abstract) {
+    debug('Make "%s"', abstract);
+    if (this.bootstrap) {
+      debug('Bootstrap All Provider');
+      this.providers.forEach((provider) => {
+        if (!provider.isBooted()) provider.boot();
+      });
+      this.bootstrap = false;
+    }
 
-Kernel.prototype.flush = function () {
-  Container.prototype.flush.call(this);
-  this.providers = [];
-};
+    if (abstract in this.defer) {
+      this.loadDeferServiceProvider(abstract);
+    }
 
-Kernel.prototype.loadDeferServiceProvider = function (abstract) {
-  const instance = this.defer[abstract];
-  debug('Load [%s] from defer service provider [%s]', instance.constructor.name);
-  if (!instance.isBooted()) {
-    debug('Boot up defer service provider [%s]', instance.constructor.name);
-    instance.register(this);
-    boot(instance);
-    this.providers.push(instance);
-  }
-  delete this.defer[abstract];
-};
-
-Kernel.prototype.register = function (provider) {
-  if (typeof provider !== 'function') {
-    throw new TypeError('Provider should be a class or function');
-  }
-  debug('Register Service Provider [%s]', provider.name);
-  const instance = construct(provider, this);
-  if (instance.isDefer()) {
-    debug('Add defer service provider [%s]', provider.name);
-    const self = this;
-    instance.provides().forEach((abstract) => {
-      self.defer[abstract] = instance;
-    });
-    return;
+    return super.make(abstract);
   }
 
-  if (!instance.isBooted()) {
-    debug('Boot service provider [%s]', provider.name);
-    instance.register(this);
-    // instance.boot();
-    this.bootstrap = true;
-    this.providers.push(instance);
+  flush() {
+    this.providers = [];
   }
 
-  this.emit('register', provider);
-};
+  /**
+   * @param {typeof import('./ServiceProvider')} Provider
+   */
+  register(Provider) {
+    let instance = Provider;
+    if (typeof Provider === 'function') {
+      instance = new Provider(this);
+    }
+    debug('Register Service Provider [%s]', instance.constructor.name);
+    if (instance.isDefer) {
+      debug('Add defer service provider [%s]', instance.constructor.name);
+      instance.provides.forEach((abstract) => {
+        this.defer.set(abstract, instance);
+      });
+      return;
+    }
+
+    if (!instance.isBooted) {
+      debug('Boot service provider [%s]', instance.name);
+      instance.register(this);
+      this.bootstrap = true;
+      this.providers.push(instance);
+    }
+
+    this.emit('register', instance);
+  }
+}
 
 module.exports = Kernel;

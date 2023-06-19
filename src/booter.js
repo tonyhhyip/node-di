@@ -4,7 +4,9 @@ function resolveConstructor(object) {
   debug('Resolve constructor for %s', object);
   if ('constructor' in object) {
     return object.constructor;
-  } else if ('constructor' in object.prototype) {
+  }
+
+  if ('constructor' in object.prototype) {
     return object.prototype.constructor;
   }
   return null;
